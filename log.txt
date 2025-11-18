@@ -1,4 +1,5 @@
-6de26e7 (HEAD -> main) Task 1.1 fixed CheckStyle issues
+2e5854b (HEAD -> main) Task 1.2 Git Log
+6de26e7 Task 1.1 fixed CheckStyle issues
 463b277 Task 1.1 fixed CheckStyle issues
 70278d0 Task 1.1 fixed CheckStyle issues
 48a18dc Task 1.1 fixed CheckStyle issues
