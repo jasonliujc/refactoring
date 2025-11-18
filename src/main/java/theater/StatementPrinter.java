@@ -13,8 +13,9 @@ public class StatementPrinter {
     private static final int ONE_HUNDRED = 100;
     private static final int THIRTY = 30;
 
+    private static Map<String, Play> plays;
+
     private Invoice invoice;
-    private Map<String, Play> plays;
 
     public StatementPrinter(Invoice invoice, Map<String, Play> plays) {
         this.invoice = invoice;
@@ -35,44 +36,50 @@ public class StatementPrinter {
         final NumberFormat frmt = NumberFormat.getCurrencyInstance(Locale.US);
 
         for (Performance p : invoice.getPerformances()) {
-            final Play play = plays.get(p.getPlayID());
-
-            int thisAmount = 0;
-            switch (play.getType()) {
-                case "tragedy":
-                    thisAmount = FOUR_ZERO_THOUSAND;
-                    if (p.getAudience() > Constants.TRAGEDY_AUDIENCE_THRESHOLD) {
-                        thisAmount += ONE_THOUSAND * (p.getAudience() - THIRTY);
-                    }
-                    break;
-                case "comedy":
-                    thisAmount = Constants.COMEDY_BASE_AMOUNT;
-                    if (p.getAudience() > Constants.COMEDY_AUDIENCE_THRESHOLD) {
-                        thisAmount += Constants.COMEDY_OVER_BASE_CAPACITY_AMOUNT
-                                + (Constants.COMEDY_OVER_BASE_CAPACITY_PER_PERSON
-                                * (p.getAudience() - Constants.COMEDY_AUDIENCE_THRESHOLD));
-                    }
-                    thisAmount += Constants.COMEDY_AMOUNT_PER_AUDIENCE * p.getAudience();
-                    break;
-                default:
-                    throw new RuntimeException(String.format("unknown type: %s", play.getType()));
-            }
 
             // add volume credits
             volumeCredits += Math.max(p.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD, 0);
             // add extra credit for every five comedy attendees
-            if ("comedy".equals(play.getType())) {
+            if ("comedy".equals(getPlay(p).getType())) {
                 volumeCredits += p.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
             }
 
             // print line for this order
-            result.append(String.format("  %s: %s (%s seats)%n", play.getName(),
-                    frmt.format(thisAmount / ONE_HUNDRED), p.getAudience()));
-            totalAmount += thisAmount;
+            result.append(String.format("  %s: %s (%s seats)%n", getPlay(p).getName(),
+                    frmt.format(getAmount(p) / ONE_HUNDRED), p.getAudience()));
+            totalAmount += getAmount(p);
         }
         result.append(String.format("Amount owed is %s%n", frmt.format(totalAmount / ONE_HUNDRED)));
         result.append(String.format("You earned %s credits%n", volumeCredits));
         return result.toString();
+    }
+
+    private static Play getPlay(Performance performance) {
+        return plays.get(performance.getPlayID());
+    }
+
+    private static int getAmount(Performance performance) {
+        int result = 0;
+        switch (getPlay(performance).getType()) {
+            case "tragedy":
+                result = FOUR_ZERO_THOUSAND;
+                if (performance.getAudience() > Constants.TRAGEDY_AUDIENCE_THRESHOLD) {
+                    result += ONE_THOUSAND * (performance.getAudience() - THIRTY);
+                }
+                break;
+            case "comedy":
+                result = Constants.COMEDY_BASE_AMOUNT;
+                if (performance.getAudience() > Constants.COMEDY_AUDIENCE_THRESHOLD) {
+                    result += Constants.COMEDY_OVER_BASE_CAPACITY_AMOUNT
+                            + (Constants.COMEDY_OVER_BASE_CAPACITY_PER_PERSON
+                            * (performance.getAudience() - Constants.COMEDY_AUDIENCE_THRESHOLD));
+                }
+                result += Constants.COMEDY_AMOUNT_PER_AUDIENCE * performance.getAudience();
+                break;
+            default:
+                throw new RuntimeException(String.format("unknown type: %s", getPlay(performance).getType()));
+        }
+        return result;
     }
 
     public Invoice getInvoice() {
