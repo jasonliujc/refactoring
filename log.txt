@@ -1,4 +1,5 @@
-4791bae (HEAD -> main) Task 2.1
+ce6c426 (HEAD -> main) Task 2.2
+4791bae Task 2.1
 fc2120b Task 2.1
 2e5854b Task 1.2 Git Log
 6de26e7 Task 1.1 fixed CheckStyle issues
